@@ -11,11 +11,20 @@ app.use(express.json());
 
 const PORT = 5000;
 
+const usedCodes = new Set(); // Track used codes to prevent reuse (dev only)
+
 app.post('/spotify-auth', async (req, res) => {
     const { code, code_verifier, redirect_uri } = req.body;
 
+    console.log('[POST /spotify-auth] Incoming:', { code, code_verifier, redirect_uri });
+
     if (!code) {
         return res.status(400).json({ error: 'Code is required' });
+    }
+
+    if (usedCodes.has(code)) {
+        console.warn('[POST /spotify-auth] Code reuse detected:', code);
+        return res.status(400).json({ error: 'Authorization code has already been used.' });
     }
 
     try {
@@ -37,11 +46,14 @@ app.post('/spotify-auth', async (req, res) => {
 
         const data = await response.json();
 
+        console.log('[POST /spotify-auth] Spotify response:', { status: response.status, data });
+
         if (!response.ok) {
             console.error('Spotify token exchange error:', data);
             return res.status(response.status).json(data);
         }
 
+        usedCodes.add(code); // Mark code as used
         res.json(data);
     } catch (error) {
         console.error('Internal server error:', error);
