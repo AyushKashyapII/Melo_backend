@@ -111,6 +111,7 @@ app.post('/refresh-token', async (req, res) => {
 app.get('/api/lyrics', async (req, res) => {
     const { title, artist } = req.query;
     if (!title) return res.status(400).json({ error: 'Missing title' });
+    console.log("hitting lyris for title:", title, "artist:", artist);
 
     let url = `https://lyricsapi-three.vercel.app/musixmatch/lyrics-search?title=${encodeURIComponent(title)}`;
     if (artist) url += `&artist=${encodeURIComponent(artist)}`;
