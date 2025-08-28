@@ -12,7 +12,7 @@ function generateOTP() {
   return otp;
 }
 
-const sendOTP = async (email, otp) => {
+const sendOtp = async (email, otp) => {
   await transporter.sendMail({
     from: `"TuneTribe Support" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -21,4 +21,4 @@ const sendOTP = async (email, otp) => {
   });
 };
 
-export { sendOTP };
+export { sendOtp };
