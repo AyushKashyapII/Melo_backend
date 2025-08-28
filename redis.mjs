@@ -10,7 +10,7 @@ const client = createClient({
     port: parseInt(process.env.REDIS_PORT || '16649')
   }
 });
-// adding random comment 
+
 client.on('error', err => console.error('❌ Redis Client Error', err));
 client.on('connect', () => console.log('✅ Connected to Redis'));
 client.on('ready', () => console.log('🚀 Redis Client Ready'));
@@ -18,6 +18,5 @@ client.on('ready', () => console.log('🚀 Redis Client Ready'));
 await client.connect();
 
 export default client;
-
 
 
