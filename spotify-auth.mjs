@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js'; 
 import redisClient from './redis.mjs'; 
+import { sendOtp } from './sendEmail.mjs';
 
 dotenv.config();
 
@@ -398,6 +399,40 @@ app.delete('/api/invalidate-user-profile-cache/:userId', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Backend server running on http://localhost:${PORT}`);
+app.post('/check-email-exists', async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const supabaseAdmin = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+    );
+
+    try {
+        const { data, error } = await supabaseAdmin.rpc('get_user_id_by_email', { p_email: email });
+
+        if (error) {
+            console.error('RPC error:', error);
+            return res.status(500).json({ exists: false, error: error.message });
+        }
+        const userId = data;
+        if (!userId) {
+            return res.json({ exists: false });
+        }
+
+        // If user exists, send OTP
+        sendOtp(email);
+
+        return res.json({ exists: true, userId });
+    } catch (error) {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
+
+app.listen(PORT, () => {});
+
+export default app;
